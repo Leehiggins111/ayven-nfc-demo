@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f0f10">
+<meta name="robots" content="noindex">
+<title>Demo Dog Grooming · NFC tap page demo</title>
+<style>
+:root{--bg:#0f0f10;--card:#1a1a1c;--line:#2c2c30;--text:#f4f1ea;--muted:#c9c4b8;--accent:#d4b45a;--on-accent:#141414}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:480px;margin:0 auto;padding:20px 16px 32px}
+.badge{display:inline-block;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600;letter-spacing:.02em}
+header{text-align:center;padding:12px 0 20px}
+.logo{width:84px;height:84px;margin:16px auto 12px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-size:2.4rem;font-weight:800}
+h1{font-size:1.6rem;margin:0 0 4px;line-height:1.2}
+.loc{color:var(--muted);margin:0 0 8px;font-size:.95rem}
+.tag{margin:0;font-size:1.05rem}
+.actions{display:grid;gap:12px;margin:8px 0 24px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:14px 16px;border-radius:14px;font-size:1.1rem;font-weight:700;text-decoration:none;border:2px solid var(--accent);color:var(--text);background:var(--card);cursor:pointer;width:100%;font-family:inherit}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.btn:active{transform:scale(.98)}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+h2{font-size:1.1rem;margin:0 0 10px;color:var(--accent)}
+.note{color:var(--muted);font-size:.9rem;margin:8px 0 0}
+table{width:100%;border-collapse:collapse}
+td{padding:6px 0;border-bottom:1px solid var(--line)}
+td:last-child{text-align:right;color:var(--muted)}
+.socials{display:flex;flex-wrap:wrap;gap:10px}
+.socials a{flex:1 1 120px;min-height:48px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:12px;color:var(--text);text-decoration:none;font-weight:600}
+footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:24px}
+footer strong{color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--accent);color:var(--on-accent);padding:10px 16px;border-radius:10px;font-weight:700;display:none}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <span class="badge" id="badge">Demo — sample business</span>
+    <div class="logo" id="logo" aria-hidden="true">D</div>
+    <h1 id="name">Demo Dog Grooming</h1>
+    <p class="loc" id="location">Livingston, West Lothian</p>
+    <p class="tag" id="tagline">Friendly, calm grooming for dogs of every size.</p>
+  </header>
+
+  <nav class="actions" aria-label="Quick actions">
+    <a class="btn primary" id="call" href="tel:01506000000">📞 Call</a>
+    <a class="btn" id="whatsapp" href="https://wa.me/440000000000" rel="noopener">💬 WhatsApp</a>
+    <a class="btn" id="book" href="#book-section">📅 Book appointment</a>
+    <a class="btn" id="review" href="#review-section">⭐ Leave a Google review</a>
+    <button class="btn" id="save" type="button">👤 Save contact</button>
+  </nav>
+
+  <section id="book-section">
+    <h2>Book appointment</h2>
+    <p id="bookText">Placeholder: online booking link goes here.</p>
+  </section>
+
+  <section>
+    <h2>Opening hours</h2>
+    <table id="hours"></table>
+    <p class="note">Placeholder hours for demonstration.</p>
+  </section>
+
+  <section id="review-section">
+    <h2>Google review</h2>
+    <p id="reviewText">Placeholder: the business's Google review link goes here.</p>
+  </section>
+
+  <section>
+    <h2>Follow us</h2>
+    <div class="socials" id="socials"></div>
+    <p class="note">Placeholder social links.</p>
+  </section>
+
+  <footer>Powered by <strong>Ayven Campus</strong> · NFC tap pages</footer>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+/* ===== CLIENT CONFIG =====
+   Edit DEFAULT, or add an entry to CLIENTS and open the page with ?b=<key>.
+   Placeholders only: no real numbers, prices or testimonials. */
+var DEFAULT = {
+  name: "Demo Dog Grooming",
+  initial: "D",
+  demo: true,
+  location: "Livingston, West Lothian",
+  tagline: "Friendly, calm grooming for dogs of every size.",
+  phone: "01506 000000",
+  phoneIntl: "+441506000000",
+  whatsapp: "https://wa.me/440000000000",
+  email: "hello@example.com",
+  website: "https://example.com",
+  bookUrl: "",           // e.g. booking page URL; empty = placeholder section
+  reviewUrl: "",         // e.g. https://g.page/r/XXXX/review; empty = placeholder section
+  accent: "#d4b45a",
+  hours: [["Mon–Fri","00:00 – 00:00"],["Saturday","00:00 – 00:00"],["Sunday","Closed (placeholder)"]],
+  socials: [["Facebook","#"],["Instagram","#"],["TikTok","#"]]
+};
+var CLIENTS = {
+  // example: second skin
+  "demo-cafe": { name: "Demo Café", initial: "C", tagline: "Placeholder café tagline.", accent: "#7ec8a9" }
+};
+/* ========================= */
+(function(){
+  var key = new URLSearchParams(location.search).get("b");
+  var c = Object.assign({}, DEFAULT, (key && CLIENTS[key]) || {});
+  var $ = function(id){ return document.getElementById(id); };
+  document.title = c.name + " · NFC tap page";
+  document.documentElement.style.setProperty("--accent", c.accent);
+  $("name").textContent = c.name;
+  $("logo").textContent = c.initial || c.name.charAt(0);
+  $("location").textContent = c.location;
+  $("tagline").textContent = c.tagline;
+  $("badge").hidden = !c.demo;
+  $("call").href = "tel:" + c.phoneIntl;
+  $("call").textContent = "📞 Call " + c.phone;
+  $("whatsapp").href = c.whatsapp;
+  if (c.bookUrl) $("book").href = c.bookUrl;
+  if (c.reviewUrl) $("review").href = c.reviewUrl;
+  $("hours").innerHTML = "";
+  c.hours.forEach(function(h){
+    var tr = document.createElement("tr");
+    h.forEach(function(v){ var td = document.createElement("td"); td.textContent = v; tr.appendChild(td); });
+    $("hours").appendChild(tr);
+  });
+  $("socials").innerHTML = "";
+  c.socials.forEach(function(s){
+    var a = document.createElement("a"); a.textContent = s[0]; a.href = s[1]; a.rel = "noopener";
+    $("socials").appendChild(a);
+  });
+  function esc(v){ return String(v).replace(/([\\,;])/g, "\\$1"); }
+  $("save").addEventListener("click", function(){
+    var vcf = ["BEGIN:VCARD","VERSION:3.0","FN:" + esc(c.name),"ORG:" + esc(c.name),
+      "TEL;TYPE=WORK,VOICE:" + c.phoneIntl,"EMAIL:" + c.email,"URL:" + c.website,
+      "ADR;TYPE=WORK:;;;" + esc(c.location) + ";;;UK",
+      "NOTE:" + esc(c.demo ? "Demo sample business - placeholder details" : c.tagline),"END:VCARD"].join("\r\n");
+    var blob = new Blob([vcf], {type: "text/vcard"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = c.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase() + ".vcf";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    var t = $("toast"); t.textContent = "Contact card downloaded"; t.style.display = "block";
+    setTimeout(function(){ t.style.display = "none"; }, 2500);
+  });
+})();
+</script>
+</body>
+</html>
